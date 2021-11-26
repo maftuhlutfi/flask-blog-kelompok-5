@@ -134,9 +134,15 @@ def edit(id):
 @app.route('/<int:id>/delete', methods=('POST',))
 def delete(id):
     post = get_post(id)
-    conn = get_db_connection()
-    conn.execute('DELETE FROM posts WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+
+    # Ubah disini
+    mydb = get_db_connection()
+
+    cursor = mydb.cursor()
+
+    # Perintah sama cuma beda si pengeksekusi dan "?" diganti "%s"
+    cursor.execute('DELETE FROM posts WHERE id = %s', (id,))
+    mydb.commit()
+    mydb.close()
     flash('"{}" was successfully deleted!'.format(post['title']))
     return redirect(url_for('index'))
