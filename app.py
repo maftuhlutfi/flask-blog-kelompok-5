@@ -91,11 +91,16 @@ def create():
         if not title:
             flash('Title is required!')
         else:
-            conn = get_db_connection()
-            conn.execute('INSERT INTO posts (title, content) VALUES (?, ?)',
+            # Ubah disini
+            mydb = get_db_connection()
+
+            cursor = mydb.cursor()
+
+            # Perintah sama cuma beda si pengeksekusi dan "?" diganti "%s"
+            cursor.execute('INSERT INTO posts (title, content) VALUES (%s, %s)',
                          (title, content))
-            conn.commit()
-            conn.close()
+            mydb.commit()
+            mydb.close()
             return redirect(url_for('index'))
 
     return render_template('create.html')
@@ -111,16 +116,21 @@ def edit(id):
         if not title:
             flash('Title is required!')
         else:
-            conn = get_db_connection()
-            conn.execute('UPDATE posts SET title = ?, content = ?'
-                         ' WHERE id = ?',
+            # Ubah disini
+            mydb = get_db_connection()
+
+            cursor = mydb.cursor()
+
+            # Perintah sama cuma beda si pengeksekusi dan "?" diganti "%s"
+            cursor.execute('UPDATE posts SET title = %s, content = %s'
+                         ' WHERE id = %s',
                          (title, content, id))
-            conn.commit()
-            conn.close()
+            mydb.commit()
+            mydb.close()
             return redirect(url_for('index'))
 
     return render_template('edit.html', post=post)
-
+    
 @app.route('/<int:id>/delete', methods=('POST',))
 def delete(id):
     post = get_post(id)
