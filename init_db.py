@@ -1,20 +1,26 @@
-import sqlite3
+import mysql.connector
 
-connection = sqlite3.connect('database.db')
+mydb = mysql.connector.connect(
+  host="localhost",
+  user="root",
+  password="",
+  database="flaskblog"
+)
 
+mycursor = mydb.cursor()
 
-with open('schema.sql') as f:
-    connection.executescript(f.read())
+mycursor.execute("DROP TABLE IF EXISTS posts")
+mycursor.execute("CREATE TABLE posts ( id INT PRIMARY KEY AUTO_INCREMENT, created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, title TEXT NOT NULL, content TEXT NOT NULL )")
 
-cur = connection.cursor()
+mycursor.execute(
+    "INSERT INTO posts (title, content) VALUES (%s, %s)",
+    ('First Post', 'Content for the first post')
+)
 
-cur.execute("INSERT INTO posts (title, content) VALUES (?, ?)",
-            ('First Post', 'Content for the first post')
-            )
+mycursor.execute(
+    "INSERT INTO posts (title, content) VALUES (%s, %s)",
+    ('Second Post', 'Content for the second post')
+)
 
-cur.execute("INSERT INTO posts (title, content) VALUES (?, ?)",
-            ('Second Post', 'Content for the second post')
-            )
-
-connection.commit()
-connection.close()
+mydb.commit()
+mydb.close()
