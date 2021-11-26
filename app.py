@@ -1,29 +1,80 @@
-import sqlite3
 from flask import Flask, render_template, request, url_for, flash, redirect
 from werkzeug.exceptions import abort
+
+# import mysql connector
+import mysql.connector
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key'
 
+# Ubah get connection method untuk return db kita
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    mydb = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="flaskblog"
+    )
+
+    return mydb
 
 def get_post(post_id):
-    conn = get_db_connection()
-    post = conn.execute('SELECT * FROM posts WHERE id = ?',
-                        (post_id,)).fetchone()
-    conn.close()
+    # Ubah disini
+    mydb = get_db_connection()
+
+    cursor = mydb.cursor()
+
+    # Perintah sama cuma beda si pengeksekusi dan "?" diganti "%s"
+    cursor.execute(
+        'SELECT * FROM posts WHERE id = %s',
+        (post_id,)
+    )
+
+    # Karena cuma ambil satu post sesuai id maka fetchone() dipanggil
+    result = cursor.fetchone()
+
+    # Ubah format hasil query sesuai aturan template kemarin, karena hasil query berbentuk list
+    post = {
+        'id': result[0],
+        'created': result[1],
+        'title': result[2],
+        'content': result[3]
+    }
+
+    # Close db
+    mydb.close()
+
     if post is None:
         abort(404)
     return post
 
 @app.route('/')
 def index():
-    conn = get_db_connection()
-    posts = conn.execute('SELECT * FROM posts').fetchall()
-    conn.close()
+    # Ubah disini
+    mydb = get_db_connection()
+
+    cursor = mydb.cursor()
+
+    # Perintah sama cuma beda si pengeksekusi dan "?" diganti "%s"
+    cursor.execute('SELECT * FROM posts')
+
+    # Karena ambil semua hasil query maka fetchall() dipanggil
+    result = cursor.fetchall()
+
+    # Ubah format hasil query sesuai aturan template kemarin, karena hasil query berbentuk list
+    posts = []
+    for entry in result:
+        record = {
+            'id': entry[0],
+            'created': entry[1],
+            'title': entry[2],
+            'content': entry[3]
+        }
+        posts.append(record)
+
+    # Close db
+    mydb.close()
+    
     return render_template('index.html', posts=posts)
 
 @app.route('/<int:post_id>')
